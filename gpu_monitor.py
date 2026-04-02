@@ -112,18 +112,31 @@ class GPUMonitorWindow(QMainWindow):
                 if gpu_name is None:
                     gpu_name = f"GPU {i}"
                 
-                try:
-                    proc_info = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
-                    for proc in proc_info:
-                        vram = proc.usedGpuMemory if proc.usedGpuMemory is not None else 0
-                        processes.append({
-                            'pid': proc.pid,
-                            'name': self._get_process_name(proc.pid),
-                            'vram': vram,
-                            'gpu': gpu_name
-                        })
-                except pynvml.NVMLError:
-                    pass
+                for func_name, proc_func in [
+                    ('Compute', pynvml.nvmlDeviceGetComputeRunningProcesses),
+                    ('Graphics', pynvml.nvmlDeviceGetGraphicsRunningProcesses),
+                ]:
+                    try:
+                        proc_info = proc_func(handle)
+                        for proc in proc_info:
+                            vram = 0
+                            if hasattr(proc, 'usedGpuMemory') and proc.usedGpuMemory is not None:
+                                vram = proc.usedGpuMemory
+                            elif hasattr(proc, 'gpuUtil') and proc.gpuUtil is not None:
+                                pass
+                            if vram > 0:
+                                existing = next((p for p in processes if p['pid'] == proc.pid), None)
+                                if existing:
+                                    existing['vram'] += vram
+                                else:
+                                    processes.append({
+                                        'pid': proc.pid,
+                                        'name': self._get_process_name(proc.pid),
+                                        'vram': vram,
+                                        'gpu': gpu_name
+                                    })
+                    except (pynvml.NVMLError, AttributeError):
+                        pass
             
             processes.sort(key=lambda x: x['vram'], reverse=True)
             
