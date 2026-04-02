@@ -1,0 +1,4 @@
+pynvml
+PySide6
+psutil
+pyinstaller
