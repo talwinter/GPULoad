@@ -19,7 +19,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        pip install pynvml PySide6 psutil pyinstaller
+        pip install pynvml PySide6 psutil pyinstaller pywin32
     
     - name: Build executable
       run: |

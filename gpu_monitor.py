@@ -157,7 +157,17 @@ class GPUMonitorWindow(QMainWindow):
         event.accept()
 
 
+import os
+import win32event
+import win32api
+import winerror
+
+
 def main():
+    mutex = win32event.CreateMutex(None, False, "GPU_VRAM_Monitor_SingleInstance")
+    if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+        sys.exit(0)
+    
     try:
         pynvml.nvmlInit()
     except pynvml.NVMLError as e:
