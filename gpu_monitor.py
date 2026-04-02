@@ -115,10 +115,11 @@ class GPUMonitorWindow(QMainWindow):
                 try:
                     proc_info = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
                     for proc in proc_info:
+                        vram = proc.usedGpuMemory if proc.usedGpuMemory is not None else 0
                         processes.append({
                             'pid': proc.pid,
                             'name': self._get_process_name(proc.pid),
-                            'vram': proc.usedGpuMemory,
+                            'vram': vram,
                             'gpu': gpu_name
                         })
                 except pynvml.NVMLError:
